@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Your Councillors</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f4f4f4;
+        }
+        header {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        header img {
+            width: 100%;
+            max-width: 800px;
+            height: auto;
+        }
+        .title-container {
+            text-align: center;
+            padding: 20px 0;
+            color: #4CAF50;
+            font-size: 2em;
+        }
+        main {
+            max-width: 800px;
+            margin: 20px;
+            padding: 20px;
+            background: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .explanation {
+            margin-bottom: 20px;
+            font-size: 1.2em;
+            color: #666;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        input[type="text"], select {
+            padding: 10px;
+            margin: 10px 0;
+            width: 100%;
+            max-width: 400px;
+            font-size: 1em;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 1em;
+            color: white;
+            background-color: #4CAF50;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #result {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <h1>Tell your ward councillors to Divest Now!</h1>
+        <div class="explanation">
+            Use this tool to find and contact your local councillors. Simply select your borough, enter your name and postcode (in the format E10 5AB), and this tool will make ready-to-go emails asking for divestment to your councillors.
+        </div>
+        <form id="custom-form">
+            <select id="borough" required>
+                <option value="" disabled selected>Select your borough</option>
+                <!-- Borough options will be dynamically populated -->
+            </select>
+            <input type="text" id="name" placeholder="Enter your name" required>
+            <input type="text" id="query" placeholder="Enter postcode" required>
+            <button type="submit">Submit</button>
+        </form>
+        <div id="result"></div>
+    </main>
+
+    <script type="text/javascript">
+    jQuery(document).ready(function($) {
+        // Fetch boroughs from backend
+        $.get('https://script.google.com/macros/s/AKfycbxeuFSPfAjm317hHxcVqVQCcVEIgSmaQ0zXiFJ94MSJ1ZhNf6DdNhLSaMz0feB9C-TLHQ/exec?boroughs=true', function(response) {
+            const boroughs = response.boroughs;
+            boroughs.forEach(function(borough) {
+                $('#borough').append(`<option value="${borough}">${borough}</option>`);
+            });
+        });
+
+        $('#custom-form').on('submit', function(event) {
+            event.preventDefault();
+
+            var borough = $('#borough').val();
+            var name = $('#name').val();
+            var query = $('#query').val();
+            var url = 'https://script.google.com/macros/s/AKfycbxeuFSPfAjm317hHxcVqVQCcVEIgSmaQ0zXiFJ94MSJ1ZhNf6DdNhLSaMz0feB9C-TLHQ/exec' + '?name=' + encodeURIComponent(name) + '&query=' + encodeURIComponent(query) + '&borough=' + encodeURIComponent(borough);
+
+            $.get(url, function(response) {
+                var ward = response.ward;
+                var councillors = response.councillors;
+                var links = response.links;
+                var resultHtml = '';
+
+                if (ward === "Invalid") {
+                    resultHtml = '<div>Invalid postcode or borough. Please try again.</div>';
+                } else {
+                    resultHtml = '<div>You live in the ' + ward + ' ward and have ' + councillors.length + ' councillors: ' + councillors.join(', ') + '</div>';
+                    councillors.forEach(function(councillor, index) {
+                        var link = links[index];
+                        resultHtml += '<a href="' + link + encodeURIComponent(name) + '" target="_blank">Email ' + councillor + '</a><br>';
+                    });
+                }
+                $('#result').html(resultHtml);
+            });
+        });
+    });
+    </script>
+</body>
+</html>
