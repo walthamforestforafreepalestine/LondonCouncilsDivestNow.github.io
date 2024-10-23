@@ -79,15 +79,11 @@
 </head>
 <body>
     <main>
-        <h1>Tell your ward councillors to Divest Now!</h1>
+        <h1 id="main-title"></h1>
         <div class="explanation">
-            Use this tool to find and contact your local councillors. Simply select your borough, enter your name and postcode (in the format E10 5AB), and this tool will make ready-to-go emails asking for divestment to your councillors.
+            Use this tool to find and contact your local councillors. Simply enter your name and postcode (in the format E10 5AB), and this tool will make ready-to-go emails asking for divestment to your councillors.
         </div>
         <form id="custom-form">
-            <select id="borough" required>
-                <option value="" disabled selected>Select your borough</option>
-                <!-- Borough options will be dynamically populated -->
-            </select>
             <input type="text" id="name" placeholder="Enter your name" required>
             <input type="text" id="query" placeholder="Enter postcode" required>
             <button type="submit">Submit</button>
@@ -97,21 +93,30 @@
 
     <script type="text/javascript">
     jQuery(document).ready(function($) {
-        // Fetch boroughs from backend
-        $.get('https://script.google.com/macros/s/AKfycbxeuFSPfAjm317hHxcVqVQCcVEIgSmaQ0zXiFJ94MSJ1ZhNf6DdNhLSaMz0feB9C-TLHQ/exec?boroughs=true', function(response) {
-            const boroughs = response.boroughs;
-            boroughs.forEach(function(borough) {
-                $('#borough').append(`<option value="${borough}">${borough}</option>`);
-            });
-        });
+        // Function to get URL parameters
+        function getParameterByName(name) {
+            const url = new URL(window.location.href);
+            return url.searchParams.get(name);
+        }
+
+        // Function to insert spaces between words based on capital letters
+        function addSpacesToCamelCase(str) {
+            return str.replace(/([a-z])([A-Z])/g, '$1 $2');
+        }
+
+        // Get borough from URL parameter
+        const borough = getParameterByName('borough');
+        const formattedBorough = addSpacesToCamelCase(borough);
+
+        // Update the title with the borough name
+        $('#main-title').text('Tell your ward councillors that ' + formattedBorough + ' needs to Divest Now!');
 
         $('#custom-form').on('submit', function(event) {
             event.preventDefault();
 
-            var borough = $('#borough').val();
             var name = $('#name').val();
             var query = $('#query').val();
-            var url = 'https://script.google.com/macros/s/AKfycbxeuFSPfAjm317hHxcVqVQCcVEIgSmaQ0zXiFJ94MSJ1ZhNf6DdNhLSaMz0feB9C-TLHQ/exec' + '?name=' + encodeURIComponent(name) + '&query=' + encodeURIComponent(query) + '&borough=' + encodeURIComponent(borough);
+            var url = 'https://script.google.com/macros/s/AKfycbxeuFSPfAjm317hHxcVqVQCcVEIgSmaQ0zXiFJ94MSJ1ZhNf6DdNhLSaMz0feB9C-TLHQ/exec' + '?name=' + encodeURIComponent(name) + '&query=' + encodeURIComponent(query) + '&borough=' + encodeURIComponent(formattedBorough);
 
             $.get(url, function(response) {
                 var ward = response.ward;
